@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login · RailBook Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="auth-wrap">
+        <div class="auth-card">
+            <div class="auth-brand">
+                <i class="fa-solid fa-train-subway logo"></i>
+                <h1>Welcome back</h1>
+                <p>Login to your RailBook Pro account</p>
+            </div>
+            <form id="login-form" novalidate>
+                <div class="form-group">
+                    <label for="usernameOrEmail">Username or Email</label>
+                    <input class="form-control" type="text" id="usernameOrEmail" name="usernameOrEmail" placeholder="admin or you@example.com" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input class="form-control" type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <div class="remember-row">
+                    <label><input type="checkbox" name="remember" id="remember"> Remember me</label>
+                    <a href="#" id="forgot-link">Forgot password?</a>
+                </div>
+                <button class="btn btn-primary btn-block" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+            </form>
+            <div class="auth-footer">
+                Don't have an account? <a href="register.html">Register</a>
+            </div>
+            <div class="card mt-3" style="background:#f8fafc;font-size:13px">
+                <strong>Demo accounts</strong>
+                <div class="text-muted mt-2">Admin — <code>admin</code> / <code>admin123</code></div>
+                <div class="text-muted">Passenger — <code>rahul</code> / <code>password123</code></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot password modal -->
+    <div class="modal-overlay" id="forgot-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Reset Password</h3>
+                <button class="modal-close" data-close>&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-2">Enter your registered email. (Demo: no email is actually sent.)</p>
+                <form id="forgot-form" novalidate>
+                    <div class="form-group">
+                        <label for="fp-email">Email</label>
+                        <input class="form-control" type="email" id="fp-email" name="email" placeholder="you@example.com">
+                    </div>
+                    <button class="btn btn-primary btn-block" type="submit">Send reset link</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/store.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        Store.load();
+        if (Auth.isLoggedIn()) {
+            window.location.href = Auth.isAdmin() ? 'admin/dashboard.html' : 'dashboard.html';
+        }
+
+        var form = Utils.$('#login-form');
+        // Pre-fill remembered username
+        var remembered = Auth.rememberedUsername();
+        if (remembered) { form.elements.usernameOrEmail.value = remembered; form.elements.remember.checked = true; }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var valid = Utils.validateForm(form, {
+                usernameOrEmail: [Utils.Validators.required],
+                password: [Utils.Validators.required]
+            });
+            if (!valid) return;
+
+            var res = Auth.login(form.elements.usernameOrEmail.value, form.elements.password.value, form.elements.remember.checked);
+            if (!res.ok) {
+                Utils.toast('Login failed', res.error, 'error');
+                Utils.setFieldError(form.elements.password, res.error);
+                return;
+            }
+            Utils.toast('Welcome', 'Logged in as ' + res.user.fullName, 'success');
+            setTimeout(function () {
+                window.location.href = res.user.role === 'ADMIN' ? 'admin/dashboard.html' : 'dashboard.html';
+            }, 500);
+        });
+
+        // Forgot password modal
+        var modal = Utils.$('#forgot-modal');
+        Utils.$('#forgot-link').addEventListener('click', function (e) { e.preventDefault(); modal.classList.add('open'); });
+        Utils.$all('[data-close]', modal).forEach(function (b) { b.addEventListener('click', function () { modal.classList.remove('open'); }); });
+        modal.addEventListener('click', function (e) { if (e.target === modal) modal.classList.remove('open'); });
+        Utils.$('#forgot-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var f = e.target;
+            if (!Utils.validateForm(f, { email: [Utils.Validators.required, Utils.Validators.email] })) return;
+            modal.classList.remove('open');
+            Utils.toast('Reset link sent', 'Check your email (demo only).', 'success');
+        });
+    </script>
+</body>
+</html>

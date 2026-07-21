@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard · RailBook Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app-shell"></div>
+
+    <script src="js/store.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/layout.js"></script>
+    <script>
+        Store.load();
+        if (!Auth.guard()) throw new Error('redirecting');
+        if (Auth.isAdmin()) { window.location.href = 'admin/dashboard.html'; }
+
+        var content = Layout.render({ title: 'Dashboard', active: 'dashboard.html' });
+        var user = Auth.currentUser();
+        var stats = Api.passengerStats();
+        var el = Utils.el;
+
+        var cards = [
+            { label: 'Upcoming Trips', value: stats.upcomingTrips, icon: 'fa-plane-departure', cls: 'ic-blue' },
+            { label: 'Booking History', value: stats.bookingHistory, icon: 'fa-clock-rotate-left', cls: 'ic-sky' },
+            { label: 'Cancelled Tickets', value: stats.cancelledTickets, icon: 'fa-ban', cls: 'ic-red' },
+            { label: 'Favourite Routes', value: stats.favouriteRoutes, icon: 'fa-heart', cls: 'ic-amber' }
+        ];
+
+        var html = '<h2 class="mb-2">Hello, ' + Utils.escapeHtml(user.fullName.split(' ')[0]) + ' 👋</h2>' +
+            '<p class="text-muted mb-2">Here\'s an overview of your journeys.</p><div class="stats-grid">';
+        cards.forEach(function (c) {
+            html += '<div class="stat-card"><div class="stat-icon ' + c.cls + '"><i class="fa-solid ' + c.icon + '"></i></div>' +
+                '<div><div class="value">' + c.value + '</div><div class="label">' + c.label + '</div></div></div>';
+        });
+        html += '</div>';
+
+        // Quick actions
+        html += '<div class="grid-2">' +
+            '<div class="card"><h3><i class="fa-solid fa-bolt" style="color:var(--warning)"></i> Quick Actions</h3>' +
+                '<a class="btn btn-primary mt-2" href="search.html"><i class="fa-solid fa-magnifying-glass"></i> Search Trains</a> ' +
+                '<a class="btn btn-outline mt-2" href="booking.html"><i class="fa-solid fa-ticket"></i> Book a Ticket</a> ' +
+                '<a class="btn btn-outline mt-2" href="history.html"><i class="fa-solid fa-clock-rotate-left"></i> My Bookings</a>' +
+            '</div>' +
+            '<div class="card"><h3><i class="fa-solid fa-heart" style="color:var(--danger)"></i> Favourite Routes</h3><div id="fav-routes"></div></div>' +
+        '</div>';
+
+        // Upcoming trips table
+        html += '<div class="section-title">Upcoming Trips</div><div class="card"><div class="table-wrap"><table class="data-table" id="upcoming-table">' +
+            '<thead><tr><th>PNR</th><th>Train</th><th>Route</th><th>Date</th><th>Class</th><th>Status</th></tr></thead><tbody></tbody></table></div><div id="upcoming-empty"></div></div>';
+
+        content.innerHTML = html;
+
+        // Favourite routes
+        var favWrap = Utils.$('#fav-routes');
+        var favs = Store.all('favouriteRoutes').filter(function (f) { return f.userId === user.id; });
+        if (!favs.length) favWrap.innerHTML = '<p class="text-muted mt-2">No favourite routes yet.</p>';
+        else favWrap.innerHTML = favs.map(function (f) {
+            return '<div class="mt-2"><i class="fa-solid fa-location-dot" style="color:var(--primary)"></i> ' +
+                Utils.escapeHtml(f.from) + ' <i class="fa-solid fa-arrow-right-long text-muted"></i> ' + Utils.escapeHtml(f.to) + '</div>';
+        }).join('');
+
+        // Upcoming trips
+        var today = new Date().toISOString().slice(0, 10);
+        var upcoming = Api.myBookings().filter(function (b) { return b.status === 'CONFIRMED' && b.journeyDate >= today; });
+        var tbody = Utils.$('#upcoming-table tbody');
+        if (!upcoming.length) {
+            Utils.$('#upcoming-table').style.display = 'none';
+            Utils.$('#upcoming-empty').innerHTML = '<div class="empty-state"><i class="fa-solid fa-train"></i><h3>No upcoming trips</h3><p>Book a ticket to see it here.</p></div>';
+        } else {
+            tbody.innerHTML = upcoming.map(function (b) {
+                return '<tr><td><strong>' + b.pnr + '</strong></td><td>' + Utils.escapeHtml(b.trainName) + '<br><small class="text-muted">' + b.trainNumber + '</small></td>' +
+                    '<td>' + Utils.escapeHtml(b.sourceStation) + ' → ' + Utils.escapeHtml(b.destinationStation) + '</td>' +
+                    '<td>' + Utils.formatDate(b.journeyDate) + '</td><td>' + b.travelClassLabel + '</td>' +
+                    '<td><span class="badge badge-success">' + b.status + '</span></td></tr>';
+            }).join('');
+        }
+    </script>
+</body>
+</html>

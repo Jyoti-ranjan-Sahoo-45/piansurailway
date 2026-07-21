@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Stations · RailBook Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div id="app-shell"></div>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/layout.js"></script>
+    <script src="../js/admin-crud.js"></script>
+    <script>
+        Store.load();
+        if (!Auth.guard({ requireAdmin: true })) throw new Error('redirecting');
+        var content = Layout.render({ title: 'Manage Stations', active: 'stations.html', admin: true });
+        var esc = Utils.escapeHtml;
+        var V = Utils.Validators;
+
+        AdminCrud.build({
+            mount: content,
+            title: 'Stations',
+            collection: 'stations',
+            searchKeys: ['code', 'name', 'city', 'state'],
+            columns: [
+                { key: 'code', label: 'Code', render: function (s) { return '<span class="badge badge-info">' + esc(s.code) + '</span>'; } },
+                { key: 'name', label: 'Name', render: function (s) { return esc(s.name); } },
+                { key: 'city', label: 'City', render: function (s) { return esc(s.city); } },
+                { key: 'state', label: 'State', render: function (s) { return esc(s.state); } },
+                { key: 'platformCount', label: 'Platforms' }
+            ],
+            fields: [
+                { name: 'code', label: 'Station Code', validators: [V.required] },
+                { name: 'name', label: 'Station Name', validators: [V.required] },
+                { name: 'city', label: 'City', validators: [V.required] },
+                { name: 'state', label: 'State', validators: [V.required] },
+                { name: 'platformCount', label: 'Platform Count', type: 'number', validators: [V.required, V.positiveInt] }
+            ],
+            beforeSave: function (v, editingId) {
+                var dupe = Store.all('stations').some(function (s) { return s.id !== editingId && s.code.toUpperCase() === v.code.toUpperCase(); });
+                if (dupe) return 'Station code already exists';
+                return null;
+            },
+            toRecord: function (v) {
+                return { code: v.code.trim().toUpperCase(), name: v.name.trim(), city: v.city.trim(), state: v.state.trim(), platformCount: Number(v.platformCount) };
+            }
+        });
+    </script>
+</body>
+</html>

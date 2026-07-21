@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Routes · RailBook Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div id="app-shell"></div>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/layout.js"></script>
+    <script src="../js/admin-crud.js"></script>
+    <script>
+        Store.load();
+        if (!Auth.guard({ requireAdmin: true })) throw new Error('redirecting');
+        var content = Layout.render({ title: 'Manage Routes', active: 'routes.html', admin: true });
+        var esc = Utils.escapeHtml;
+        var V = Utils.Validators;
+
+        function trainOpts() { return Store.all('trains').map(function (t) { return { value: t.id, label: t.name + ' (' + t.trainNumber + ')' }; }); }
+        function stationOpts() { return Store.all('stations').map(function (s) { return { value: s.id, label: s.name + ' (' + s.code + ')' }; }); }
+        function trainName(id) { var t = Store.find('trains', id); return t ? t.name + ' (' + t.trainNumber + ')' : '-'; }
+
+        AdminCrud.build({
+            mount: content,
+            title: 'Routes',
+            collection: 'routes',
+            cellValue: function (r, k) {
+                if (k === 'train') return trainName(r.trainId);
+                return r[k];
+            },
+            searchKeys: ['train', 'intermediateStations'],
+            columns: [
+                { key: 'train', label: 'Train', render: function (r) { return esc(trainName(r.trainId)); } },
+                { key: 'route', label: 'Route', render: function (r) { return esc(Api.stationName(r.sourceStationId)) + ' → ' + esc(Api.stationName(r.destinationStationId)); } },
+                { key: 'distanceKm', label: 'Distance', render: function (r) { return r.distanceKm + ' km'; } },
+                { key: 'intermediateStations', label: 'Via', render: function (r) { return esc(r.intermediateStations || '-'); } }
+            ],
+            fields: [
+                { name: 'trainId', label: 'Train', type: 'select', options: trainOpts },
+                { name: 'sourceStationId', label: 'Source Station', type: 'select', options: stationOpts },
+                { name: 'destinationStationId', label: 'Destination Station', type: 'select', options: stationOpts },
+                { name: 'distanceKm', label: 'Distance (km)', type: 'number', validators: [V.required, V.positiveInt] },
+                { name: 'intermediateStations', label: 'Intermediate Stations', placeholder: 'Comma-separated' }
+            ],
+            fromRecord: function (r) { return Object.assign({}, r); },
+            beforeSave: function (v) {
+                if (Number(v.sourceStationId) === Number(v.destinationStationId)) return 'Source and destination must differ';
+                return null;
+            },
+            toRecord: function (v) {
+                return {
+                    trainId: Number(v.trainId), sourceStationId: Number(v.sourceStationId), destinationStationId: Number(v.destinationStationId),
+                    distanceKm: Number(v.distanceKm), intermediateStations: (v.intermediateStations || '').trim()
+                };
+            }
+        });
+    </script>
+</body>
+</html>

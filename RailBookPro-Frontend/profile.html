@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile · RailBook Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div id="app-shell"></div>
+
+    <script src="js/store.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/layout.js"></script>
+    <script>
+        Store.load();
+        if (!Auth.guard()) throw new Error('redirecting');
+        var content = Layout.render({ title: 'My Profile', active: 'profile.html' });
+        var esc = Utils.escapeHtml;
+        var user = Auth.currentUser();
+
+        content.innerHTML =
+            '<div class="grid-2">' +
+              '<div class="card"><h3><i class="fa-solid fa-user" style="color:var(--primary)"></i> Profile Details</h3>' +
+                '<form id="profile-form" novalidate>' +
+                  '<div class="form-group"><label>Full Name</label><input class="form-control" name="fullName" value="' + esc(user.fullName) + '"></div>' +
+                  '<div class="form-group"><label>Username</label><input class="form-control" value="' + esc(user.username) + '" disabled></div>' +
+                  '<div class="form-group"><label>Email</label><input class="form-control" name="email" value="' + esc(user.email) + '"></div>' +
+                  '<div class="form-group"><label>Phone</label><input class="form-control" name="phone" value="' + esc(user.phone) + '"></div>' +
+                  '<div class="form-group"><label>Gender</label><select class="form-control" name="gender">' +
+                    '<option value="MALE"' + (user.gender === 'MALE' ? ' selected' : '') + '>Male</option>' +
+                    '<option value="FEMALE"' + (user.gender === 'FEMALE' ? ' selected' : '') + '>Female</option>' +
+                    '<option value="OTHER"' + (user.gender === 'OTHER' ? ' selected' : '') + '>Other</option></select></div>' +
+                  '<button class="btn btn-primary mt-2" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>' +
+                '</form></div>' +
+              '<div class="card"><h3><i class="fa-solid fa-lock" style="color:var(--warning)"></i> Change Password</h3>' +
+                '<form id="password-form" novalidate>' +
+                  '<div class="form-group"><label>Current Password</label><input class="form-control" type="password" name="currentPassword"></div>' +
+                  '<div class="form-group"><label>New Password</label><input class="form-control" type="password" name="newPassword"></div>' +
+                  '<div class="form-group"><label>Confirm New Password</label><input class="form-control" type="password" name="confirmPassword"></div>' +
+                  '<button class="btn btn-primary mt-2" type="submit"><i class="fa-solid fa-key"></i> Update Password</button>' +
+                '</form></div>' +
+            '</div>';
+
+        var pForm = Utils.$('#profile-form');
+        pForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var valid = Utils.validateForm(pForm, {
+                fullName: [Utils.Validators.required],
+                email: [Utils.Validators.required, Utils.Validators.email],
+                phone: [Utils.Validators.required, Utils.Validators.phone]
+            });
+            if (!valid) return;
+            // Check email uniqueness
+            var dupe = Store.all('users').some(function (u) {
+                return u.id !== user.id && u.email.toLowerCase() === pForm.elements.email.value.trim().toLowerCase();
+            });
+            if (dupe) { Utils.setFieldError(pForm.elements.email, 'Email already in use'); return; }
+
+            Store.update('users', user.id, {
+                fullName: pForm.elements.fullName.value.trim(),
+                email: pForm.elements.email.value.trim(),
+                phone: pForm.elements.phone.value.trim(),
+                gender: pForm.elements.gender.value
+            });
+            Api.addNotification(user.id, 'Profile Updated', 'Your profile details were updated successfully.');
+            Utils.toast('Profile Updated', 'Your changes have been saved.', 'success');
+            setTimeout(function () { window.location.reload(); }, 700);
+        });
+
+        var pwForm = Utils.$('#password-form');
+        pwForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            Utils.clearErrors(pwForm);
+            var valid = Utils.validateForm(pwForm, {
+                currentPassword: [Utils.Validators.required],
+                newPassword: [Utils.Validators.required, Utils.Validators.password]
+            });
+            var fresh = Auth.currentUser();
+            if (pwForm.elements.currentPassword.value !== fresh.password) {
+                Utils.setFieldError(pwForm.elements.currentPassword, 'Current password is incorrect'); valid = false;
+            }
+            if (pwForm.elements.newPassword.value !== pwForm.elements.confirmPassword.value) {
+                Utils.setFieldError(pwForm.elements.confirmPassword, 'Passwords do not match'); valid = false;
+            }
+            if (!valid) return;
+
+            Store.update('users', user.id, { password: pwForm.elements.newPassword.value });
+            Api.addNotification(user.id, 'Password Changed', 'Your password was changed successfully.');
+            Utils.toast('Password Updated', 'Your password has been changed.', 'success');
+            pwForm.reset();
+        });
+    </script>
+</body>
+</html>

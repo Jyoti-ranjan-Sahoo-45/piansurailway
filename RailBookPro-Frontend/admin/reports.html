@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports · RailBook Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div id="app-shell"></div>
+
+    <script src="../js/store.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/layout.js"></script>
+    <script>
+        Store.load();
+        if (!Auth.guard({ requireAdmin: true })) throw new Error('redirecting');
+        var content = Layout.render({ title: 'Reports', active: 'reports.html', admin: true });
+        var esc = Utils.escapeHtml;
+
+        var bookings = Api.allBookings();
+        var trains = Api.trainsEnriched();
+        var users = Store.all('users');
+        var s = Api.adminStats();
+
+        // Bookings report
+        function statusBadge(st) {
+            var map = { CONFIRMED: 'badge-success', COMPLETED: 'badge-info', CANCELLED: 'badge-danger', WAITING: 'badge-warning' };
+            return '<span class="badge ' + (map[st] || 'badge-muted') + '">' + st + '</span>';
+        }
+
+        var html = '';
+
+        // Summary cards
+        html += '<div class="stats-grid">' +
+            statCard('Total Bookings', s.totalBookings, 'fa-ticket', 'ic-blue') +
+            statCard('Revenue', Utils.formatCurrency(s.revenue), 'fa-indian-rupee-sign', 'ic-green') +
+            statCard('Cancellations', s.cancelledTickets, 'fa-ban', 'ic-red') +
+            statCard('Total Trains', s.totalTrains, 'fa-train', 'ic-sky') +
+        '</div>';
+
+        function statCard(label, value, icon, cls) {
+            return '<div class="stat-card"><div class="stat-icon ' + cls + '"><i class="fa-solid ' + icon + '"></i></div>' +
+                '<div><div class="value">' + value + '</div><div class="label">' + label + '</div></div></div>';
+        }
+
+        // Seat occupancy report
+        html += '<div class="section-title">Seat Occupancy Report</div><div class="card mb-2"><div class="table-wrap"><table class="data-table">' +
+            '<thead><tr><th>Train</th><th>Total Seats</th><th>Booked</th><th>Available</th><th>Occupancy</th></tr></thead><tbody>' +
+            trains.map(function (t) {
+                var booked = t.totalSeats - t.availableSeats;
+                var pct = Math.round((booked / t.totalSeats) * 100);
+                return '<tr><td>' + esc(t.name) + ' <small class="text-muted">' + t.trainNumber + '</small></td>' +
+                    '<td>' + t.totalSeats + '</td><td>' + booked + '</td><td>' + t.availableSeats + '</td>' +
+                    '<td><span class="badge ' + (pct > 70 ? 'badge-danger' : pct > 30 ? 'badge-warning' : 'badge-success') + '">' + pct + '%</span></td></tr>';
+            }).join('') + '</tbody></table></div></div>';
+
+        // Cancellation summary
+        var cancelled = bookings.filter(function (b) { return b.status === 'CANCELLED'; });
+        html += '<div class="section-title">Cancellation Summary</div><div class="card mb-2"><div class="table-wrap"><table class="data-table">' +
+            '<thead><tr><th>PNR</th><th>Train</th><th>Date</th><th>Refund (fare)</th></tr></thead><tbody>' +
+            (cancelled.length ? cancelled.map(function (b) {
+                return '<tr><td>' + b.pnr + '</td><td>' + esc(b.trainName) + '</td><td>' + Utils.formatDate(b.journeyDate) + '</td><td>' + Utils.formatCurrency(b.totalFare) + '</td></tr>';
+            }).join('') : '<tr><td colspan="4" class="text-muted">No cancellations.</td></tr>') +
+            '</tbody></table></div></div>';
+
+        // Users report
+        html += '<div class="section-title">Users Report</div><div class="card mb-2"><div class="table-wrap"><table class="data-table">' +
+            '<thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Bookings</th></tr></thead><tbody>' +
+            users.map(function (u) {
+                var count = bookings.filter(function (b) { return b.userId === u.id; }).length;
+                return '<tr><td>' + esc(u.fullName) + '</td><td>' + esc(u.email) + '</td>' +
+                    '<td><span class="badge ' + (u.role === 'ADMIN' ? 'badge-info' : 'badge-muted') + '">' + u.role + '</span></td><td>' + count + '</td></tr>';
+            }).join('') + '</tbody></table></div></div>';
+
+        // Full bookings report
+        html += '<div class="section-title">Bookings Report</div><div class="card"><div class="table-wrap"><table class="data-table">' +
+            '<thead><tr><th>PNR</th><th>Train</th><th>Date</th><th>Class</th><th>Fare</th><th>Status</th></tr></thead><tbody>' +
+            bookings.map(function (b) {
+                return '<tr><td>' + b.pnr + '</td><td>' + esc(b.trainName) + '</td><td>' + Utils.formatDate(b.journeyDate) + '</td>' +
+                    '<td>' + b.travelClass + '</td><td>' + Utils.formatCurrency(b.totalFare) + '</td><td>' + statusBadge(b.status) + '</td></tr>';
+            }).join('') + '</tbody></table></div></div>';
+
+        content.innerHTML = html;
+    </script>
+</body>
+</html>
