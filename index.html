@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Train Ticket Booking</title>
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #ffffff;
+        color: #1f2937;
+        line-height: 1.5;
+        padding: 24px;
+    }
+
+    .container {
+        max-width: 640px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        text-align: center;
+        color: #1d4ed8;
+        margin-bottom: 24px;
+        font-size: 28px;
+    }
+
+    .card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        margin-bottom: 24px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #374151;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 15px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+        border-color: #1d4ed8;
+    }
+
+    .btn {
+        display: inline-block;
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff;
+        background: #1d4ed8;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 8px;
+    }
+
+    .btn:hover {
+        background: #1e40af;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    .btn-group .btn {
+        flex: 1;
+        min-width: 120px;
+        margin-top: 0;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+    }
+
+    .btn-danger {
+        background: #dc2626;
+    }
+
+    .btn-danger:hover {
+        background: #b91c1c;
+    }
+
+    .ticket-card {
+        border: 2px solid #1d4ed8;
+        border-radius: 16px;
+        padding: 20px;
+        background: #f8faff;
+    }
+
+    .ticket-card h2 {
+        color: #1d4ed8;
+        margin-bottom: 16px;
+        font-size: 20px;
+    }
+
+    .ticket-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed #d1d5db;
+        font-size: 15px;
+    }
+
+    .ticket-row:last-of-type {
+        border-bottom: none;
+    }
+
+    .ticket-row .key {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .ticket-row .value {
+        color: #111827;
+        text-align: right;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Train Ticket Booking</h1>
+
+    <!-- Booking Form -->
+    <div class="card" id="formCard">
+        <form id="bookingForm">
+            <div class="form-group">
+                <label for="booking_id">Booking ID</label>
+                <input type="text" id="booking_id" required>
+            </div>
+            <div class="form-group">
+                <label for="passenger_name">Passenger Name</label>
+                <input type="text" id="passenger_name" required>
+            </div>
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" min="1" max="120" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" required>
+                    <option value="">-- Select --</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="train_number">Train Number</label>
+                <input type="text" id="train_number" required>
+            </div>
+            <div class="form-group">
+                <label for="train_name">Train Name</label>
+                <input type="text" id="train_name" required>
+            </div>
+            <div class="form-group">
+                <label for="source_station">Source Station</label>
+                <input type="text" id="source_station" required>
+            </div>
+            <div class="form-group">
+                <label for="destination_station">Destination Station</label>
+                <input type="text" id="destination_station" required>
+            </div>
+            <div class="form-group">
+                <label for="journey_date">Journey Date</label>
+                <input type="date" id="journey_date" required>
+            </div>
+            <div class="form-group">
+                <label for="coach_type">Coach Type</label>
+                <select id="coach_type" required>
+                    <option value="">-- Select --</option>
+                    <option value="Sleeper">Sleeper</option>
+                    <option value="3A">3A</option>
+                    <option value="2A">2A</option>
+                    <option value="1A">1A</option>
+                    <option value="General">General</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="seat_number">Seat Number</label>
+                <input type="text" id="seat_number" required>
+            </div>
+            <button type="submit" class="btn" id="submitBtn">Book Ticket</button>
+        </form>
+    </div>
+
+    <!-- Ticket Display -->
+    <div class="card ticket-card hidden" id="ticketCard">
+        <h2>Ticket Details</h2>
+        <div id="ticketDetails"></div>
+        <div class="btn-group">
+            <button class="btn" id="editBtn">Edit Booking</button>
+            <button class="btn btn-danger" id="deleteBtn">Delete Booking</button>
+            <button class="btn btn-secondary" id="newBtn">Book New Ticket</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var fields = [
+        { id: "booking_id",          label: "Booking ID" },
+        { id: "passenger_name",      label: "Passenger Name" },
+        { id: "age",                 label: "Age" },
+        { id: "gender",              label: "Gender" },
+        { id: "train_number",        label: "Train Number" },
+        { id: "train_name",          label: "Train Name" },
+        { id: "source_station",      label: "Source Station" },
+        { id: "destination_station", label: "Destination Station" },
+        { id: "journey_date",        label: "Journey Date" },
+        { id: "coach_type",          label: "Coach Type" },
+        { id: "seat_number",         label: "Seat Number" }
+    ];
+
+    var form = document.getElementById("bookingForm");
+    var formCard = document.getElementById("formCard");
+    var ticketCard = document.getElementById("ticketCard");
+    var ticketDetails = document.getElementById("ticketDetails");
+
+    // temporary in-memory store for the current booking
+    var currentBooking = null;
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        currentBooking = {};
+        for (var i = 0; i < fields.length; i++) {
+            currentBooking[fields[i].id] = document.getElementById(fields[i].id).value.trim();
+        }
+
+        localStorage.setItem("currentBooking", JSON.stringify(currentBooking));
+        showTicket();
+    });
+
+    function showTicket() {
+        ticketDetails.innerHTML = "";
+        for (var i = 0; i < fields.length; i++) {
+            var row = document.createElement("div");
+            row.className = "ticket-row";
+
+            var key = document.createElement("span");
+            key.className = "key";
+            key.textContent = fields[i].label;
+
+            var value = document.createElement("span");
+            value.className = "value";
+            value.textContent = currentBooking[fields[i].id];
+
+            row.appendChild(key);
+            row.appendChild(value);
+            ticketDetails.appendChild(row);
+        }
+
+        formCard.classList.add("hidden");
+        ticketCard.classList.remove("hidden");
+    }
+
+    document.getElementById("editBtn").addEventListener("click", function () {
+        // refill the form with the current booking, then show it
+        for (var i = 0; i < fields.length; i++) {
+            document.getElementById(fields[i].id).value = currentBooking[fields[i].id];
+        }
+        ticketCard.classList.add("hidden");
+        formCard.classList.remove("hidden");
+    });
+
+    document.getElementById("deleteBtn").addEventListener("click", function () {
+        currentBooking = null;
+        localStorage.removeItem("currentBooking");
+        form.reset();
+        ticketCard.classList.add("hidden");
+        formCard.classList.remove("hidden");
+    });
+
+    document.getElementById("newBtn").addEventListener("click", function () {
+        currentBooking = null;
+        localStorage.removeItem("currentBooking");
+        form.reset();
+        ticketCard.classList.add("hidden");
+        formCard.classList.remove("hidden");
+    });
+</script>
+</body>
+</html>
