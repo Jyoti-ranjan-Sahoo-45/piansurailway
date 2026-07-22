@@ -304,6 +304,20 @@
         box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
     }
 
+    input:disabled, select:disabled {
+        background-color: #f1f5f9;
+        color: #64748b;
+        cursor: not-allowed;
+        border-color: #cbd5e1;
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
     select {
         appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%209ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
@@ -1228,6 +1242,19 @@
         showTicket();
     });
 
+    function setFormDisabled(disabled) {
+        for (var i = 0; i < inputFields.length; i++) {
+            var el = document.getElementById(inputFields[i]);
+            if (el) {
+                el.disabled = disabled;
+            }
+        }
+        var submitBtn = document.getElementById("submitBtn");
+        if (submitBtn) {
+            submitBtn.disabled = disabled;
+        }
+    }
+
     function showTicket() {
         document.getElementById("disp_booking_id").textContent = currentBooking.booking_id;
         document.getElementById("disp_passenger_name").textContent = currentBooking.passenger_name;
@@ -1241,6 +1268,9 @@
 
         emptyTicketBox.classList.add("hidden");
         ticketCard.classList.remove("hidden");
+
+        // Lock form input fields after booking
+        setFormDisabled(true);
 
         // Update Stepper
         step1.classList.remove("active");
@@ -1260,6 +1290,9 @@
     }
 
     document.getElementById("editBtn").addEventListener("click", function () {
+        // Unlock form input fields for editing
+        setFormDisabled(false);
+
         for (var i = 0; i < inputFields.length; i++) {
             var fieldId = inputFields[i];
             if (currentBooking[fieldId]) {
@@ -1274,6 +1307,8 @@
         step3.className = "step-item";
         line1.className = "step-line";
         line2.className = "step-line";
+
+        document.getElementById("passenger_name").focus();
     });
 
     document.getElementById("deleteBtn").addEventListener("click", function () {
@@ -1281,6 +1316,7 @@
         localStorage.removeItem("currentBooking");
         form.reset();
         clearErrors();
+        setFormDisabled(false);
         ticketCard.classList.add("hidden");
         emptyTicketBox.classList.remove("hidden");
         resetStepper();
@@ -1291,6 +1327,7 @@
         localStorage.removeItem("currentBooking");
         form.reset();
         clearErrors();
+        setFormDisabled(false);
         ticketCard.classList.add("hidden");
         emptyTicketBox.classList.remove("hidden");
         resetStepper();
@@ -1304,7 +1341,10 @@
             showTicket();
         } catch(e) {
             currentBooking = null;
+            setFormDisabled(false);
         }
+    } else {
+        setFormDisabled(false);
     }
 </script>
 </body>
