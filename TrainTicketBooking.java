@@ -1,3 +1,6 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -36,6 +39,9 @@ public class TrainTicketBooking {
 
     static ArrayList<Ticket> bookings = new ArrayList<>();
     static Scanner scanner = new Scanner(System.in);
+    static int bookingCounter = 0;
+    static int seatCounter = 0;
+    static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public static void main(String[] args) {
         boolean running = true;
@@ -80,13 +86,8 @@ public class TrainTicketBooking {
     static void bookTicket() {
         System.out.println("\n----- Book Ticket -----");
 
-        System.out.print("Booking ID: ");
-        String bookingId = scanner.nextLine().trim();
-
-        System.out.print("Passenger Name: ");
-        String passengerName = scanner.nextLine().trim();
-
-        int age = readInt("Age: ");
+        String passengerName = readName("Passenger Name: ");
+        int age = readAge("Age: ");
 
         System.out.print("Gender: ");
         String gender = scanner.nextLine().trim();
@@ -103,14 +104,14 @@ public class TrainTicketBooking {
         System.out.print("Destination Station: ");
         String destinationStation = scanner.nextLine().trim();
 
-        System.out.print("Journey Date (YYYY-MM-DD): ");
-        String journeyDate = scanner.nextLine().trim();
+        String journeyDate = readFutureDate("Journey Date (YYYY-MM-DD): ");
 
         System.out.print("Coach Type: ");
         String coachType = scanner.nextLine().trim();
 
-        System.out.print("Seat Number: ");
-        String seatNumber = scanner.nextLine().trim();
+        // Booking ID and Seat Number are auto-generated after booking.
+        String bookingId = generateBookingId();
+        String seatNumber = generateSeatNumber();
 
         Ticket ticket = new Ticket(bookingId, passengerName, age, gender,
                 trainNumber, trainName, sourceStation, destinationStation,
@@ -118,6 +119,8 @@ public class TrainTicketBooking {
         bookings.add(ticket);
 
         System.out.println("\nTicket booked successfully.");
+        System.out.println("Booking ID : " + bookingId);
+        System.out.println("Seat Number: " + seatNumber);
     }
 
     static void viewAllTickets() {
@@ -128,11 +131,11 @@ public class TrainTicketBooking {
             return;
         }
 
-        String format = "%-10s %-18s %-4s %-8s %-8s %-20s %-14s %-14s %-12s %-10s %-8s%n";
+        String format = "%-10s %-18s %-4s %-8s %-8s %-20s %-16s %-18s %-12s %-10s %-8s%n";
         System.out.printf(format, "BookingID", "Passenger", "Age", "Gender",
                 "TrainNo", "TrainName", "Source", "Destination",
                 "Date", "Coach", "Seat");
-        System.out.println("-".repeat(140));
+        System.out.println("-".repeat(150));
 
         for (Ticket t : bookings) {
             System.out.printf(format, t.bookingId, t.passengerName, t.age, t.gender,
@@ -153,17 +156,25 @@ public class TrainTicketBooking {
         }
 
         System.out.println("Leave a field blank to keep the current value.");
+        System.out.println("(Booking ID and Seat Number cannot be changed.)");
 
         System.out.print("Passenger Name (" + ticket.passengerName + "): ");
         String passengerName = scanner.nextLine().trim();
-        if (!passengerName.isEmpty()) ticket.passengerName = passengerName;
+        if (!passengerName.isEmpty()) {
+            if (isValidName(passengerName)) {
+                ticket.passengerName = passengerName;
+            } else {
+                System.out.println("Invalid name. Keeping previous value.");
+            }
+        }
 
         System.out.print("Age (" + ticket.age + "): ");
         String ageInput = scanner.nextLine().trim();
         if (!ageInput.isEmpty()) {
-            try {
-                ticket.age = Integer.parseInt(ageInput);
-            } catch (NumberFormatException e) {
+            Integer parsedAge = parseAge(ageInput);
+            if (parsedAge != null) {
+                ticket.age = parsedAge;
+            } else {
                 System.out.println("Invalid age. Keeping previous value.");
             }
         }
@@ -190,15 +201,17 @@ public class TrainTicketBooking {
 
         System.out.print("Journey Date (" + ticket.journeyDate + "): ");
         String journeyDate = scanner.nextLine().trim();
-        if (!journeyDate.isEmpty()) ticket.journeyDate = journeyDate;
+        if (!journeyDate.isEmpty()) {
+            if (isValidFutureDate(journeyDate)) {
+                ticket.journeyDate = journeyDate;
+            } else {
+                System.out.println("Invalid date or date is in the past. Keeping previous value.");
+            }
+        }
 
         System.out.print("Coach Type (" + ticket.coachType + "): ");
         String coachType = scanner.nextLine().trim();
         if (!coachType.isEmpty()) ticket.coachType = coachType;
-
-        System.out.print("Seat Number (" + ticket.seatNumber + "): ");
-        String seatNumber = scanner.nextLine().trim();
-        if (!seatNumber.isEmpty()) ticket.seatNumber = seatNumber;
 
         System.out.println("\nBooking updated successfully.");
     }
@@ -227,15 +240,76 @@ public class TrainTicketBooking {
         return null;
     }
 
-    static int readInt(String prompt) {
+    static String generateBookingId() {
+        bookingCounter++;
+        return String.format("BK%03d", bookingCounter);
+    }
+
+    static String generateSeatNumber() {
+        seatCounter++;
+        int coach = (seatCounter - 1) / 72 + 1;
+        int seat = (seatCounter - 1) % 72 + 1;
+        return String.format("S%d-%02d", coach, seat);
+    }
+
+    // ----- Validation helpers -----
+
+    static boolean isValidName(String name) {
+        return name.matches("[A-Za-z ]+");
+    }
+
+    static String readName(String prompt) {
         while (true) {
             System.out.print(prompt);
             String input = scanner.nextLine().trim();
-            try {
-                return Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
+            if (isValidName(input)) {
+                return input;
             }
+            System.out.println("Name can only contain alphabets and spaces.");
+        }
+    }
+
+    static Integer parseAge(String input) {
+        try {
+            int age = Integer.parseInt(input);
+            if (age >= 1 && age <= 150) {
+                return age;
+            }
+            return null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    static int readAge(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            Integer age = parseAge(input);
+            if (age != null) {
+                return age;
+            }
+            System.out.println("Age must be a number between 1 and 150.");
+        }
+    }
+
+    static boolean isValidFutureDate(String input) {
+        try {
+            LocalDate date = LocalDate.parse(input, DATE_FORMAT);
+            return !date.isBefore(LocalDate.now());
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
+
+    static String readFutureDate(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            if (isValidFutureDate(input)) {
+                return input;
+            }
+            System.out.println("Journey date must be a valid date (YYYY-MM-DD) and not in the past.");
         }
     }
 }
