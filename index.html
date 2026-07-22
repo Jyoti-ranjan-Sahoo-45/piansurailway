@@ -3,8 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Train Ticket Booking</title>
+<title>RailConnect - Train Ticket Booking</title>
 <style>
+    :root {
+        --primary: #4f46e5;
+        --primary-gradient: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #8b5cf6 100%);
+        --primary-hover: #4338ca;
+        --bg-main: #f3f4f6;
+        --card-bg: #ffffff;
+        --text-dark: #1f2937;
+        --text-muted: #6b7280;
+        --border-color: #e5e7eb;
+        --input-bg: #ffffff;
+        --error-color: #ef4444;
+        --success-color: #10b981;
+        --radius-lg: 16px;
+        --radius-md: 12px;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+        --shadow-md: 0 10px 25px -5px rgba(79, 70, 229, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    }
+
     * {
         box-sizing: border-box;
         margin: 0;
@@ -12,268 +30,1084 @@
     }
 
     body {
-        font-family: "Segoe UI", Arial, sans-serif;
-        background: #ffffff;
-        color: #1f2937;
+        font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        background-color: #eef2ff;
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+        color: var(--text-dark);
         line-height: 1.5;
-        padding: 24px;
+        padding: 24px 16px;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
-    .container {
-        max-width: 640px;
-        margin: 0 auto;
-    }
-
-    h1 {
-        text-align: center;
-        color: #1d4ed8;
-        margin-bottom: 24px;
-        font-size: 28px;
-    }
-
-    .card {
+    /* Main Container Card */
+    .app-container {
+        width: 100%;
+        max-width: 1100px;
         background: #ffffff;
-        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.07), 0 0 1px rgba(0,0,0,0.1);
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Header Styling */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 28px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .brand-logo-icon {
+        width: 52px;
+        height: 52px;
+        background: var(--primary-gradient);
         border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 8px 16px -4px rgba(79, 70, 229, 0.3);
+    }
+
+    .brand-title {
+        font-size: 26px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #3730a3 0%, #4f46e5 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+    }
+
+    .brand-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .header-badge-wrap {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 30px;
+        border: 1.5px solid #c7d2fe;
+        background: #f5f3ff;
+        color: #4338ca;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .header-train-art {
+        position: absolute;
+        right: 0;
+        top: -10px;
+        opacity: 0.15;
+        pointer-events: none;
+        width: 280px;
+    }
+
+    /* Stepper Styling */
+    .stepper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 32px;
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-number {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        background: #ffffff;
+        border: 2px solid #cbd5e1;
+        color: #64748b;
+        transition: all 0.3s ease;
+    }
+
+    .step-item.active .step-number {
+        background: #4f46e5;
+        border-color: #4f46e5;
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+    }
+
+    .step-item.completed .step-number {
+        background: #10b981;
+        border-color: #10b981;
+        color: #ffffff;
+    }
+
+    .step-label {
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 6px;
+        color: #64748b;
+        transition: color 0.3s ease;
+    }
+
+    .step-item.active .step-label {
+        color: #3730a3;
+    }
+
+    .step-line {
+        flex: 1;
+        height: 2px;
+        background: #e2e8f0;
+        margin: 0 16px;
+        margin-bottom: 20px;
+        transition: background 0.3s ease;
+    }
+
+    .step-line.active {
+        background: #4f46e5;
+    }
+
+    /* Main Grid Layout */
+    .grid-container {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 28px;
+        margin-bottom: 36px;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Panel Cards */
+    .panel-card {
+        background: #ffffff;
+        border: 1px solid #eef2ff;
+        border-radius: 20px;
         padding: 24px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-        margin-bottom: 24px;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1e1b4b;
+        margin-bottom: 20px;
+    }
+
+    .panel-title-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #e0e7ff;
+        color: #4338ca;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Form Fields Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
     }
 
     .form-group {
-        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
     }
 
     label {
-        display: block;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
-        margin-bottom: 6px;
         color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 12px;
+        color: #9ca3af;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     input, select {
         width: 100%;
-        padding: 10px 14px;
-        font-size: 15px;
-        border: 1px solid #d1d5db;
-        border-radius: 10px;
+        padding: 11px 14px 11px 40px;
+        font-size: 14px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #1f2937;
         outline: none;
-        transition: border-color 0.2s;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    input::placeholder {
+        color: #9ca3af;
     }
 
     input:focus, select:focus {
-        border-color: #1d4ed8;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
     }
 
-    .error {
-        color: #dc2626;
-        font-size: 13px;
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%209ca3af'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        cursor: pointer;
+    }
+
+    .error-text {
+        color: var(--error-color);
+        font-size: 12px;
+        font-weight: 500;
         margin-top: 4px;
         min-height: 16px;
     }
 
-    .btn {
-        display: inline-block;
+    /* Submit Button */
+    .submit-btn {
         width: 100%;
-        padding: 12px;
-        font-size: 16px;
-        font-weight: 600;
+        padding: 14px;
+        margin-top: 20px;
+        background: var(--primary-gradient);
         color: #ffffff;
-        background: #1d4ed8;
+        font-size: 16px;
+        font-weight: 700;
         border: none;
-        border-radius: 10px;
+        border-radius: 14px;
         cursor: pointer;
-        transition: background 0.2s;
-        margin-top: 8px;
-    }
-
-    .btn:hover {
-        background: #1e40af;
-    }
-
-    .btn-group {
         display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 16px;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        box-shadow: 0 8px 20px -4px rgba(79, 70, 229, 0.4);
+        transition: all 0.2s ease;
     }
 
-    .btn-group .btn {
+    .submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 24px -4px rgba(79, 70, 229, 0.5);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .form-footer-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 14px;
+    }
+
+    /* Right Preview Section */
+    .preview-panel {
+        background: #fdfdfd;
+        border: 1px solid #eef2ff;
+        border-radius: 20px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .preview-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: -14px;
+        margin-bottom: 24px;
+    }
+
+    /* Empty Ticket State */
+    .empty-ticket-box {
         flex: 1;
-        min-width: 120px;
-        margin-top: 0;
-    }
-
-    .btn-secondary {
-        background: #6b7280;
-    }
-
-    .btn-secondary:hover {
-        background: #4b5563;
-    }
-
-    .btn-danger {
-        background: #dc2626;
-    }
-
-    .btn-danger:hover {
-        background: #b91c1c;
-    }
-
-    .ticket-card {
-        border: 2px solid #1d4ed8;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
         border-radius: 16px;
-        padding: 20px;
-        background: #f8faff;
+        padding: 32px 20px;
+        text-align: center;
+        min-height: 320px;
     }
 
-    .ticket-card h2 {
-        color: #1d4ed8;
-        margin-bottom: 16px;
-        font-size: 20px;
+    .empty-ticket-icon-bg {
+        width: 100px;
+        height: 70px;
+        background: #e0e7ff;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #4338ca;
+        margin-bottom: 20px;
+        position: relative;
     }
 
-    .ticket-row {
+    .empty-ticket-icon-bg::before, .empty-ticket-icon-bg::after {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background: #f8fafc;
+        border-radius: 50%;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .empty-ticket-icon-bg::before { left: -6px; }
+    .empty-ticket-icon-bg::after { right: -6px; }
+
+    .empty-ticket-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e1b4b;
+        margin-bottom: 8px;
+    }
+
+    .empty-ticket-desc {
+        font-size: 13px;
+        color: #64748b;
+        max-width: 240px;
+        line-height: 1.4;
+    }
+
+    .empty-ticket-desc strong {
+        color: #4338ca;
+    }
+
+    /* Active Ticket Display */
+    .ticket-display-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .boarding-pass-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1.5px solid #c7d2fe;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.12);
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .ticket-pass-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 16px 20px;
         display: flex;
         justify-content: space-between;
-        padding: 8px 0;
-        border-bottom: 1px dashed #d1d5db;
-        font-size: 15px;
+        align-items: center;
     }
 
-    .ticket-row:last-of-type {
-        border-bottom: none;
+    .ticket-pass-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
     }
 
-    .ticket-row .key {
+    .ticket-pnr-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .ticket-pass-body {
+        padding: 20px;
+    }
+
+    .ticket-route-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+        border-bottom: 1px dashed #cbd5e1;
+    }
+
+    .station-block {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .station-code {
+        font-size: 18px;
+        font-weight: 800;
+        color: #1e1b4b;
+    }
+
+    .station-name {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .route-arrow-icon {
+        color: #6366f1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .ticket-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-size: 11px;
         font-weight: 600;
-        color: #374151;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .ticket-row .value {
-        color: #111827;
-        text-align: right;
+    .detail-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-top: 2px;
+    }
+
+    .ticket-pass-footer {
+        background: #f1f5f9;
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px dashed #cbd5e1;
+    }
+
+    .ticket-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #d1fae5;
+        color: #065f46;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 12px;
+    }
+
+    .ticket-status-pill::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+    }
+
+    /* Ticket Actions */
+    .action-btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-btn {
+        width: 100%;
+        padding: 11px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+    .btn-edit:hover { background: #c7d2fe; }
+
+    .btn-delete {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .btn-delete:hover { background: #fee2e2; }
+
+    .btn-new {
+        background: #f1f5f9;
+        color: #475569;
+    }
+    .btn-new:hover { background: #e2e8f0; }
+
+    /* Bottom Features Strip */
+    .features-strip {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 18px;
+        padding: 16px 24px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .feature-icon-circle {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .icon-blue { background: #eff6ff; color: #2563eb; }
+    .icon-green { background: #ecfdf5; color: #059669; }
+    .icon-purple { background: #f5f3ff; color: #7c3aed; }
+    .icon-orange { background: #fff7ed; color: #ea580c; }
+
+    .feature-text-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .feature-text-desc {
+        font-size: 11px;
+        color: #64748b;
+    }
+
+    /* Bottom Graphic Decor */
+    .bottom-rail-track {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 320px;
+        opacity: 0.18;
+        pointer-events: none;
     }
 
     .hidden {
-        display: none;
+        display: none !important;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+        .grid-container {
+            grid-template-columns: 1fr;
+        }
+        .features-strip {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .app-container {
+            padding: 20px;
+        }
+    }
+
+    @media (max-width: 550px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        .features-strip {
+            grid-template-columns: 1fr;
+        }
+        .header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .header-badge-wrap {
+            width: 100%;
+            justify-content: space-between;
+        }
     }
 </style>
 </head>
 <body>
-<div class="container">
-    <h1>Train Ticket Booking</h1>
 
-    <!-- Booking Form -->
-    <div class="card" id="formCard">
-        <form id="bookingForm" novalidate>
-            <!-- Booking ID is auto-generated after booking, so no input field. -->
-            <div class="form-group">
-                <label for="passenger_name">Passenger Name</label>
-                <input type="text" id="passenger_name" required>
-                <div class="error" id="err_passenger_name"></div>
+<div class="app-container">
+    <!-- Header -->
+    <header class="header">
+        <div class="brand">
+            <div class="brand-logo-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="16" rx="2"></rect>
+                    <path d="M4 11h16"></path>
+                    <path d="M12 3v8"></path>
+                    <path d="m8 19-2 3"></path>
+                    <path d="m16 19 2 3"></path>
+                    <circle cx="8" cy="15" r="1"></circle>
+                    <circle cx="16" cy="15" r="1"></circle>
+                </svg>
             </div>
-            <div class="form-group">
-                <label for="age">Age</label>
-                <input type="number" id="age" min="1" max="150" required>
-                <div class="error" id="err_age"></div>
+            <div>
+                <h1 class="brand-title">RailConnect</h1>
+                <p class="brand-subtitle">Book your journey with comfort</p>
             </div>
-            <div class="form-group">
-                <label for="gender">Gender</label>
-                <select id="gender" required>
-                    <option value="">-- Select --</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-                <div class="error" id="err_gender"></div>
-            </div>
-            <div class="form-group">
-                <label for="train_number">Train Number</label>
-                <input type="text" id="train_number" required>
-                <div class="error" id="err_train_number"></div>
-            </div>
-            <div class="form-group">
-                <label for="train_name">Train Name</label>
-                <input type="text" id="train_name" required>
-                <div class="error" id="err_train_name"></div>
-            </div>
-            <div class="form-group">
-                <label for="source_station">Source Station</label>
-                <input type="text" id="source_station" required>
-                <div class="error" id="err_source_station"></div>
-            </div>
-            <div class="form-group">
-                <label for="destination_station">Destination Station</label>
-                <input type="text" id="destination_station" required>
-                <div class="error" id="err_destination_station"></div>
-            </div>
-            <div class="form-group">
-                <label for="journey_date">Journey Date</label>
-                <input type="date" id="journey_date" required>
-                <div class="error" id="err_journey_date"></div>
-            </div>
-            <div class="form-group">
-                <label for="coach_type">Coach Type</label>
-                <select id="coach_type" required>
-                    <option value="">-- Select --</option>
-                    <option value="Sleeper">Sleeper</option>
-                    <option value="3A">3A</option>
-                    <option value="2A">2A</option>
-                    <option value="1A">1A</option>
-                    <option value="General">General</option>
-                </select>
-                <div class="error" id="err_coach_type"></div>
-            </div>
-            <!-- Seat Number is auto-generated after booking, so no input field. -->
-            <button type="submit" class="btn" id="submitBtn">Book Ticket</button>
-        </form>
-    </div>
+        </div>
 
-    <!-- Ticket Display -->
-    <div class="card ticket-card hidden" id="ticketCard">
-        <h2>Ticket Details</h2>
-        <div id="ticketDetails"></div>
-        <div class="btn-group">
-            <button class="btn" id="editBtn">Edit Booking</button>
-            <button class="btn btn-danger" id="deleteBtn">Delete Booking</button>
-            <button class="btn btn-secondary" id="newBtn">Book New Ticket</button>
+        <div class="header-badge-wrap">
+            <div class="header-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="3" width="16" height="16" rx="2"></rect>
+                    <path d="M4 11h16"></path>
+                </svg>
+                <span>Book • Travel • Enjoy</span>
+            </div>
+        </div>
+
+        <!-- Train Decor SVG Header -->
+        <svg class="header-train-art" viewBox="0 0 300 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 60 Q 80 40 160 55 T 290 40" stroke="#4f46e5" stroke-width="2" stroke-dasharray="4 4"/>
+            <rect x="180" y="20" width="80" height="25" rx="6" fill="#6366f1"/>
+            <circle cx="200" cy="45" r="4" fill="#312e81"/>
+            <circle cx="240" cy="45" r="4" fill="#312e81"/>
+        </svg>
+    </header>
+
+    <!-- Stepper -->
+    <div class="stepper">
+        <div class="step-item active" id="step1">
+            <div class="step-number">1</div>
+            <span class="step-label">Enter Details</span>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-item" id="step2">
+            <div class="step-number">2</div>
+            <span class="step-label">Review</span>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-item" id="step3">
+            <div class="step-number">3</div>
+            <span class="step-label">Confirm</span>
         </div>
     </div>
+
+    <!-- Main Grid -->
+    <div class="grid-container">
+        <!-- Form Panel -->
+        <div class="panel-card" id="formCard">
+            <div class="panel-title">
+                <div class="panel-title-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"></path>
+                    </svg>
+                </div>
+                <span>Passenger & Journey Details</span>
+            </div>
+
+            <form id="bookingForm" novalidate>
+                <div class="form-grid">
+                    <!-- Passenger Name -->
+                    <div class="form-group">
+                        <label for="passenger_name">Passenger Name</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </span>
+                            <input type="text" id="passenger_name" placeholder="Enter full name" required>
+                        </div>
+                        <div class="error-text" id="err_passenger_name"></div>
+                    </div>
+
+                    <!-- Age -->
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            </span>
+                            <input type="number" id="age" min="1" max="150" placeholder="Enter age" required>
+                        </div>
+                        <div class="error-text" id="err_age"></div>
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle></svg>
+                            </span>
+                            <select id="gender" required>
+                                <option value="">-- Select --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="error-text" id="err_gender"></div>
+                    </div>
+
+                    <!-- Train Number -->
+                    <div class="form-group">
+                        <label for="train_number">Train Number</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path><path d="M12 3v8"></path></svg>
+                            </span>
+                            <input type="text" id="train_number" placeholder="Enter train number" required>
+                        </div>
+                        <div class="error-text" id="err_train_number"></div>
+                    </div>
+
+                    <!-- Train Name -->
+                    <div class="form-group">
+                        <label for="train_name">Train Name</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path><circle cx="8" cy="15" r="1"></circle><circle cx="16" cy="15" r="1"></circle></svg>
+                            </span>
+                            <input type="text" id="train_name" placeholder="Enter train name" required>
+                        </div>
+                        <div class="error-text" id="err_train_name"></div>
+                    </div>
+
+                    <!-- Source Station -->
+                    <div class="form-group">
+                        <label for="source_station">Source Station</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            </span>
+                            <input type="text" id="source_station" placeholder="Enter source station" required>
+                        </div>
+                        <div class="error-text" id="err_source_station"></div>
+                    </div>
+
+                    <!-- Destination Station -->
+                    <div class="form-group">
+                        <label for="destination_station">Destination Station</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            </span>
+                            <input type="text" id="destination_station" placeholder="Enter destination station" required>
+                        </div>
+                        <div class="error-text" id="err_destination_station"></div>
+                    </div>
+
+                    <!-- Journey Date -->
+                    <div class="form-group">
+                        <label for="journey_date">Journey Date</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            </span>
+                            <input type="date" id="journey_date" required>
+                        </div>
+                        <div class="error-text" id="err_journey_date"></div>
+                    </div>
+
+                    <!-- Coach Type -->
+                    <div class="form-group">
+                        <label for="coach_type">Coach Type</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M4 12h16"></path></svg>
+                            </span>
+                            <select id="coach_type" required>
+                                <option value="">-- Select --</option>
+                                <option value="Sleeper">Sleeper</option>
+                                <option value="3A">3A (AC 3 Tier)</option>
+                                <option value="2A">2A (AC 2 Tier)</option>
+                                <option value="1A">1A (AC First Class)</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div class="error-text" id="err_coach_type"></div>
+                    </div>
+
+                    <!-- Seat Number -->
+                    <div class="form-group">
+                        <label for="seat_number">Seat Number</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 11v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-8"></path><path d="M4 11h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1z"></path></svg>
+                            </span>
+                            <input type="text" id="seat_number" placeholder="Enter seat number (or auto-assigned)">
+                        </div>
+                        <div class="error-text" id="err_seat_number"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"></path></svg>
+                    <span>Book Ticket</span>
+                </button>
+
+                <div class="form-footer-note">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    <span>Your information is safe and secure with us.</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- Ticket Preview Panel -->
+        <div class="preview-panel">
+            <div class="panel-title">
+                <div class="panel-title-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z"></path>
+                    </svg>
+                </div>
+                <span>Ticket Preview</span>
+            </div>
+            <p class="preview-subtitle">Your booking details will appear here</p>
+
+            <!-- Empty State Box -->
+            <div class="empty-ticket-box" id="emptyTicketBox">
+                <div class="empty-ticket-icon-bg">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="4" y="3" width="16" height="16" rx="2"></rect>
+                        <path d="M4 11h16"></path>
+                        <circle cx="8" cy="15" r="1"></circle>
+                        <circle cx="16" cy="15" r="1"></circle>
+                    </svg>
+                </div>
+                <h3 class="empty-ticket-title">No Ticket Booked Yet</h3>
+                <p class="empty-ticket-desc">Fill in the details and click on <strong>"Book Ticket"</strong> to see your ticket.</p>
+            </div>
+
+            <!-- Active Ticket Display Card -->
+            <div class="ticket-display-wrap hidden" id="ticketCard">
+                <div class="boarding-pass-card">
+                    <div class="ticket-pass-header">
+                        <div class="ticket-pass-brand">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path></svg>
+                            <span>RAILCONNECT TICKET</span>
+                        </div>
+                        <div class="ticket-pnr-badge" id="disp_booking_id">BK001</div>
+                    </div>
+
+                    <div class="ticket-pass-body">
+                        <!-- Route Row -->
+                        <div class="ticket-route-row">
+                            <div class="station-block">
+                                <span class="station-code" id="disp_source">NDLS</span>
+                                <span class="station-name">Source Station</span>
+                            </div>
+                            <div class="route-arrow-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                            </div>
+                            <div class="station-block" style="text-align: right;">
+                                <span class="station-code" id="disp_dest">BCT</span>
+                                <span class="station-name">Destination</span>
+                            </div>
+                        </div>
+
+                        <!-- Ticket Details Grid -->
+                        <div class="ticket-details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">Passenger</span>
+                                <span class="detail-value" id="disp_passenger_name">John Doe</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Age & Gender</span>
+                                <span class="detail-value" id="disp_age_gender">28, Male</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Train No & Name</span>
+                                <span class="detail-value" id="disp_train_info">12951 - Rajdhani</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Journey Date</span>
+                                <span class="detail-value" id="disp_journey_date">2026-08-15</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Coach</span>
+                                <span class="detail-value" id="disp_coach_type">3A</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Seat Number</span>
+                                <span class="detail-value" id="disp_seat_number">S1-42</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ticket-pass-footer">
+                        <div class="ticket-status-pill">CONFIRMED</div>
+                        <span style="font-size: 11px; color: #94a3b8; font-weight: 500;">Valid with ID Proof</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-btn-group">
+                    <button class="action-btn btn-edit" id="editBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <span>Edit Booking</span>
+                    </button>
+                    <button class="action-btn btn-delete" id="deleteBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        <span>Delete Booking</span>
+                    </button>
+                    <button class="action-btn btn-new" id="newBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        <span>Book New Ticket</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Features Banner -->
+    <div class="features-strip">
+        <div class="feature-item">
+            <div class="feature-icon-circle icon-blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <div>
+                <div class="feature-text-title">Fast Booking</div>
+                <div class="feature-text-desc">Book in just a few clicks</div>
+            </div>
+        </div>
+
+        <div class="feature-item">
+            <div class="feature-icon-circle icon-green">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <div>
+                <div class="feature-text-title">Secure Payments</div>
+                <div class="feature-text-desc">100% safe and secure</div>
+            </div>
+        </div>
+
+        <div class="feature-item">
+            <div class="feature-icon-circle icon-purple">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            </div>
+            <div>
+                <div class="feature-text-title">24/7 Support</div>
+                <div class="feature-text-desc">We are here to help</div>
+            </div>
+        </div>
+
+        <div class="feature-item">
+            <div class="feature-icon-circle icon-orange">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            </div>
+            <div>
+                <div class="feature-text-title">Best Prices</div>
+                <div class="feature-text-desc">Get the best deals</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decorative Bottom Train Track SVG -->
+    <svg class="bottom-rail-track" viewBox="0 0 400 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 100 Q 150 40 400 10" stroke="#6366f1" stroke-width="3"/>
+        <path d="M0 115 Q 150 55 400 25" stroke="#6366f1" stroke-width="3"/>
+        <!-- Sleepers -->
+        <line x1="20" y1="95" x2="25" y2="110" stroke="#6366f1" stroke-width="2"/>
+        <line x1="70" y1="78" x2="77" y2="93" stroke="#6366f1" stroke-width="2"/>
+        <line x1="120" y1="62" x2="129" y2="77" stroke="#6366f1" stroke-width="2"/>
+        <line x1="170" y1="48" x2="181" y2="63" stroke="#6366f1" stroke-width="2"/>
+        <line x1="220" y1="36" x2="233" y2="51" stroke="#6366f1" stroke-width="2"/>
+        <line x1="270" y1="26" x2="285" y2="41" stroke="#6366f1" stroke-width="2"/>
+        <line x1="320" y1="18" x2="337" y2="33" stroke="#6366f1" stroke-width="2"/>
+    </svg>
 </div>
 
 <script>
-    // Fields shown on the ticket card, in order. Booking ID and Seat Number
-    // are auto-generated (not input fields) but are still displayed.
-    var displayFields = [
-        { id: "booking_id",          label: "Booking ID" },
-        { id: "passenger_name",      label: "Passenger Name" },
-        { id: "age",                 label: "Age" },
-        { id: "gender",              label: "Gender" },
-        { id: "train_number",        label: "Train Number" },
-        { id: "train_name",          label: "Train Name" },
-        { id: "source_station",      label: "Source Station" },
-        { id: "destination_station", label: "Destination Station" },
-        { id: "journey_date",        label: "Journey Date" },
-        { id: "coach_type",          label: "Coach Type" },
-        { id: "seat_number",         label: "Seat Number" }
-    ];
-
-    // Fields the user actually types into the form.
     var inputFields = [
         "passenger_name", "age", "gender", "train_number", "train_name",
-        "source_station", "destination_station", "journey_date", "coach_type"
+        "source_station", "destination_station", "journey_date", "coach_type", "seat_number"
     ];
 
     var form = document.getElementById("bookingForm");
-    var formCard = document.getElementById("formCard");
+    var emptyTicketBox = document.getElementById("emptyTicketBox");
     var ticketCard = document.getElementById("ticketCard");
-    var ticketDetails = document.getElementById("ticketDetails");
+
+    var step1 = document.getElementById("step1");
+    var step2 = document.getElementById("step2");
+    var step3 = document.getElementById("step3");
+    var line1 = document.getElementById("line1");
+    var line2 = document.getElementById("line2");
 
     var currentBooking = null;
 
-    // auto-generation counters (persist across bookings in this session)
+    // Load auto counters from localStorage
     var bookingCounter = parseInt(localStorage.getItem("bookingCounter") || "0", 10);
     var seatCounter = parseInt(localStorage.getItem("seatCounter") || "0", 10);
 
@@ -298,7 +1132,7 @@
     }
 
     function clearErrors() {
-        var errs = document.querySelectorAll(".error");
+        var errs = document.querySelectorAll(".error-text");
         for (var i = 0; i < errs.length; i++) errs[i].textContent = "";
     }
 
@@ -306,6 +1140,9 @@
         var d = new Date();
         return d.getFullYear() + "-" + pad(d.getMonth() + 1, 2) + "-" + pad(d.getDate(), 2);
     }
+
+    // Min date set to today
+    document.getElementById("journey_date").setAttribute("min", todayString());
 
     function validate() {
         clearErrors();
@@ -370,16 +1207,21 @@
         var isEditing = currentBooking !== null;
 
         if (!isEditing) {
-            // new booking: generate Booking ID and Seat Number
             currentBooking = {
-                booking_id: generateBookingId(),
-                seat_number: generateSeatNumber()
+                booking_id: generateBookingId()
             };
         }
 
-        // fill/update the user-entered fields (Booking ID & Seat Number stay fixed)
+        // Fill object fields
         for (var i = 0; i < inputFields.length; i++) {
-            currentBooking[inputFields[i]] = document.getElementById(inputFields[i]).value.trim();
+            var fieldId = inputFields[i];
+            currentBooking[fieldId] = document.getElementById(fieldId).value.trim();
+        }
+
+        // Auto-generate seat number if user left it blank
+        if (!currentBooking.seat_number) {
+            currentBooking.seat_number = generateSeatNumber();
+            document.getElementById("seat_number").value = currentBooking.seat_number;
         }
 
         localStorage.setItem("currentBooking", JSON.stringify(currentBooking));
@@ -387,39 +1229,51 @@
     });
 
     function showTicket() {
-        ticketDetails.innerHTML = "";
-        for (var i = 0; i < displayFields.length; i++) {
-            var row = document.createElement("div");
-            row.className = "ticket-row";
+        document.getElementById("disp_booking_id").textContent = currentBooking.booking_id;
+        document.getElementById("disp_passenger_name").textContent = currentBooking.passenger_name;
+        document.getElementById("disp_age_gender").textContent = currentBooking.age + " Yrs, " + currentBooking.gender;
+        document.getElementById("disp_train_info").textContent = currentBooking.train_number + " - " + currentBooking.train_name;
+        document.getElementById("disp_source").textContent = currentBooking.source_station;
+        document.getElementById("disp_dest").textContent = currentBooking.destination_station;
+        document.getElementById("disp_journey_date").textContent = currentBooking.journey_date;
+        document.getElementById("disp_coach_type").textContent = currentBooking.coach_type;
+        document.getElementById("disp_seat_number").textContent = currentBooking.seat_number;
 
-            var key = document.createElement("span");
-            key.className = "key";
-            key.textContent = displayFields[i].label;
-
-            var value = document.createElement("span");
-            value.className = "value";
-            value.textContent = currentBooking[displayFields[i].id];
-
-            row.appendChild(key);
-            row.appendChild(value);
-            ticketDetails.appendChild(row);
-        }
-
-        formCard.classList.add("hidden");
+        emptyTicketBox.classList.add("hidden");
         ticketCard.classList.remove("hidden");
+
+        // Update Stepper
+        step1.classList.remove("active");
+        step1.classList.add("completed");
+        line1.classList.add("active");
+        step2.classList.add("active", "completed");
+        line2.classList.add("active");
+        step3.classList.add("active", "completed");
     }
 
-    // Set the date picker's minimum to today.
-    document.getElementById("journey_date").setAttribute("min", todayString());
+    function resetStepper() {
+        step1.className = "step-item active";
+        step2.className = "step-item";
+        step3.className = "step-item";
+        line1.className = "step-line";
+        line2.className = "step-line";
+    }
 
     document.getElementById("editBtn").addEventListener("click", function () {
-        // refill the editable fields; Booking ID and Seat Number remain unchanged
         for (var i = 0; i < inputFields.length; i++) {
-            document.getElementById(inputFields[i]).value = currentBooking[inputFields[i]];
+            var fieldId = inputFields[i];
+            if (currentBooking[fieldId]) {
+                document.getElementById(fieldId).value = currentBooking[fieldId];
+            }
         }
         clearErrors();
-        ticketCard.classList.add("hidden");
-        formCard.classList.remove("hidden");
+        
+        // Reset Stepper back to Step 1
+        step1.className = "step-item active";
+        step2.className = "step-item";
+        step3.className = "step-item";
+        line1.className = "step-line";
+        line2.className = "step-line";
     });
 
     document.getElementById("deleteBtn").addEventListener("click", function () {
@@ -428,7 +1282,8 @@
         form.reset();
         clearErrors();
         ticketCard.classList.add("hidden");
-        formCard.classList.remove("hidden");
+        emptyTicketBox.classList.remove("hidden");
+        resetStepper();
     });
 
     document.getElementById("newBtn").addEventListener("click", function () {
@@ -437,8 +1292,20 @@
         form.reset();
         clearErrors();
         ticketCard.classList.add("hidden");
-        formCard.classList.remove("hidden");
+        emptyTicketBox.classList.remove("hidden");
+        resetStepper();
     });
+
+    // Restore booking from localStorage if available
+    var savedBooking = localStorage.getItem("currentBooking");
+    if (savedBooking) {
+        try {
+            currentBooking = JSON.parse(savedBooking);
+            showTicket();
+        } catch(e) {
+            currentBooking = null;
+        }
+    }
 </script>
 </body>
 </html>
